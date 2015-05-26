@@ -1,215 +1,248 @@
 #include <random>
-#include <vector>
 #include <iostream>
 #include <algorithm>
 #include <limits>
+#include <utility>
 
-using uint = unsigned int;
-
-using std::vector;
 using std::cout;
+using std::cin;
 using std::endl;
-
-
-struct Profit {
-    int first;
-    int second;
-};
+using std::pair;
 
 int main () {
     std::random_device g;
 
-    cout << "36 places, 10 customers, 5 goods, 2 sellers, 4 marketplaces\n";
+    char ans;
+	do {
+		cout << "36 places, 10 customers, 5 goods, 2 sellers, 4 marketplaces\n";
 
-    int ex = std::numeric_limits<int>::max(); //ex - Р±РµСЃРєРѕРЅРµС‡РЅРѕСЃС‚СЊ
+		int inf = std::numeric_limits<int>::max(); //inf - бесконечность
 
-    int  ways[36][36] = {};
+		// матрица путей{0, inf}
+		int  ways[36][36] = {};
+		for (int i = 0; i < 36; ++i) {
+			for (int j = 0; j < 36; ++j)
+				ways[i][j] = inf;
+			ways[i][i] = 0;
+		}
 
-    // РґРµР»Р°РµРј РјР°С‚СЂРёС†Сѓ РїСѓС‚РµР№
-    for (int i = 0; i < 36; ++i) {
-        for (int j = 0; j < 36; ++j)
-            ways[i][j] = ex;
-        ways[i][i] = 0;
-    }
+		// делаем матрицу путей{0, 1, 2, inf}
+		ways[0][1] = g() % 2 + 1;
+		ways[0][6] = g() % 2 + 1;
+		for (int i = 1; i < 6; ++i) {
+			ways[i][i - 1] = g() % 2 + 1;
+			ways[i][i + 1] = g() % 2 + 1;
+			ways[i][i + 6] = g() % 2 + 1;
+		}
+		for (int i = 6; i < 30; ++i) {
+			ways[i][i - 1] = g() % 2 + 1;
+			ways[i][i + 1] = g() % 2 + 1;
+			ways[i][i + 6] = g() % 2 + 1;
+			ways[i][i - 6] = g() % 2 + 1;
+		}
+		for (int i = 30; i < 35; ++i) {
+			ways[i][i - 1] = g() % 2 + 1;
+			ways[i][i + 1] = g() % 2 + 1;
+			ways[i][i - 6] = g() % 2 + 1;
+		}
+		ways[35][34] = g() % 2 + 1;
+		ways[35][29] = g() % 2 + 1;
+		for (int i = 1; i < 6; ++i) 
+			ways[6 * i][6 * i - 1] = inf;
 
-    // РґРµР»Р°РµРј РјР°С‚СЂРёС†Сѓ РїСѓС‚РµР№
-    ways[0][1] = g() % 2 + 1;
-    ways[0][6] = g() % 2 + 1;
-    for (int i = 1; i < 6; ++i) {
-        ways[i][i - 1] = g() % 2 + 1;
-        ways[i][i + 1] = g() % 2 + 1;
-        ways[i][i + 6] = g() % 2 + 1;
-    }
-    for (int i = 6; i < 30; ++i) {
-        ways[i][i - 1] = g() % 2 + 1;
-        ways[i][i + 1] = g() % 2 + 1;
-        ways[i][i + 6] = g() % 2 + 1;
-        ways[i][i - 6] = g() % 2 + 1;
-    }
-    for (int i = 30; i < 35; ++i) {
-        ways[i][i - 1] = g() % 2 + 1;
-        ways[i][i + 1] = g() % 2 + 1;
-        ways[i][i - 6] = g() % 2 + 1;
-    }
-    ways[35][34] = g() % 2 + 1;
-    ways[35][29] = g() % 2 + 1;
+		// симметризация матрицы путей
+		for (int i = 0; i < 36; ++i) {
+			for (int j = 0; j < i; ++j)
+				ways[j][i] = ways[i][j];
+		}
 
-    for (int i = 1; i < 6; ++i) 
-        ways[6 * i][6 * i - 1] = ex;
+		// выод матрицы путей
+		cout << "\nmatrix of ways:\n";
+		for (int i = 0; i < 36; ++i) {
+			for (int j = 0; j < 36; ++j) {
+				if (ways[i][j] == inf)
+					cout << "* ";
+				else
+					cout << ways[i][j] << ' ';
+			}
+			cout << endl;
+		}
 
-    // СЃРёРјРјРµС‚СЂРёР·Р°С†РёСЏ
-    for (int i = 0; i < 36; ++i) {
-        for (int j = 0; j < i; ++j)
-            ways[j][i] = ways[i][j];
-    }
+		// алгоритм флойда поиска кратчайших путей 
+		for(int k = 0; k < 36; ++k)
+			for(int i = 0; i < 36; ++i)  
+				for(int j = 0; j < 36; ++j)
+					if(i != k && j != k && ways[i][k] != inf && ways[k][j] != inf)
+						ways[i][j] = std::min(ways[i][j], ways[i][k] + ways[k][j]);
 
-    for (int i = 0; i < 36; ++i) {
-        for (int j = 0; j < 36; ++j) {
-            if (ways[i][j] == ex)
-                cout << "* ";
-            else
-                cout << ways[i][j] << ' ';
-        }
-        cout << endl;
-    }
+		// точки расположения покупателей{0..9} и продавцов{10..13}
+		int points[14] = {};
+		for (int i = 0; i < 14; ++i) {
+			points[i] = -1;
+			while (true) {
+				bool flag = false;
+				int temp = g() % 36;
+				for (int j = 0; j < i; ++j)
+					if (temp == points[j])
+						flag = true;
+				if (!flag) {
+					points[i] = temp;
+					break;
+				}
+			}
+		}
+		std::sort(points, points + 10);
+		std::sort(points + 10, points + 14);
 
+		// векторы спроса всех покупателей
+		int customers[10][10] = {};
+		for (int i = 0; i < 10; ++i) {
+			for (int j = 0; j < 10; ++j)
+				customers[i][j] = g() % 5;
+			std::sort(customers[i], customers[i] + 10);
+		}
 
-    // Р°Р»РіРѕСЂРёС‚Рј С„Р»РѕР№РґР° РїРѕРёСЃРєР° РєСЂР°С‚С‡Р°Р№С€РёС… РїСѓС‚РµР№ 
-	for(int k = 0; k < 36; ++k)
-		for(int i = 0; i < 36; ++i)  
-			for(int j = 0; j < 36; ++j)
-				if(i != k && j != k && ways[i][k] != ex && ways[k][j] != ex)
-					ways[i][j] = std::min(ways[i][j], ways[i][k] + ways[k][j]);
+		// цены первого продавца{10..24}
+		int prices1[5] = {};
+		for (int i = 0; i < 5; ++i)
+			prices1[i] = g() % 15 + 10;
+		std::sort(prices1, prices1 + 5);
 
-    // С‚РѕС‡РєРё СЂР°СЃРїРѕР»РѕР¶РµРЅРёСЏ РїРѕРєСѓРїР°С‚РµР»РµР№(0-9) Рё РїСЂРѕРґР°РІС†РѕРІ(10-13)
-    int points[14] = {};
+		// цены второго продавца{8..26}
+		int prices2[5] = {};
+		for (int i = 0; i < 5; ++i)
+			prices2[i] = g() % 2 ? prices1[i] + (g() % 2) : prices1[i] - (g() % 2);
 
-    for (int i = 0; i < 14; ++i) {
-        points[i] = -1;
-        while (true) {
-            bool flag = false;
-            int temp = g() % 36;
-            for (int j = 0; j < i; ++j)
-                if (temp == points[j])
-                    flag = true;
-            if (!flag) {
-                points[i] = temp;
-                break;
+		// вывод характеристик модели
+		for (int i = 0; i < 9; ++i) {
+			cout << "\ngoods of " << i + 1 << " customer:  ";
+			for (int j = 0; j < 10; ++j) 
+				cout << customers[i][j] + 1 << ' ';
+		}
+		cout << "\ngoods of 10 customer: ";
+		for (int j = 0; j < 10; ++j) 
+			cout << customers[9][j] + 1 << ' ';
+		cout << endl;
+
+		cout << "\nprices of 1 seller: ";
+		for (int i = 0; i < 5; ++i)
+			cout << prices1[i] << ' ';
+
+		cout << "\nprices of 2 seller: ";
+		for (int i = 0; i < 5; ++i) {
+			cout.width(2);
+			cout << prices2[i] << ' ';
+		}
+		cout << endl;
+
+		cout << "\npoints of customers: ";
+		for (int i = 0; i < 10; ++i)
+			cout << points[i]  + 1 << " ";
+
+		cout << "\npoints of sellers: ";
+		for (int i = 10; i < 14; ++i)
+			cout << points[i] + 1 << " ";
+		cout << endl << endl;
+
+		// матрица предпочтений покупателей
+		cout << "matrix of choises:\n      ";
+		for (int cust = 0; cust < 10; ++cust) {
+			cout.width(3);
+			cout << points[cust] + 1;
+		}
+		cout << endl;
+		bool choises[16][10] = {};
+        // матрица выигрышей
+        pair<int, int> profits[4][4] = {};
+		int n = 0;
+		for (int i = 0; i < 4; ++i) // первый продавец
+			for (int j = 0; j < 4; ++j) { // второй продавец
+				cout.width(2);
+				cout << points[10 + i] + 1  << ", ";
+				cout.width(2);
+				cout << points[10 + j] + 1 << ": ";
+				int cust1 = 0;
+				int cust2 = 0;
+				for (int cust = 0; cust < 10; ++cust) { // покупатели
+					int cost1 = ways[points[cust]][points[10 + i]]; // затраты на 1 продавца
+					int cost2 = ways[points[cust]][points[10 + j]]; // затраты на 2 продавца
+					for (int good = 0; good < 10; ++good) { // вектор спроса
+						cost1 += prices1[customers[cust][good]];
+						cost2 += prices2[customers[cust][good]];
+					}
+					if (cost1 < cost2) {
+						choises[n][cust] = 0;
+						++cust1;
+                        profits[i][j].first += cost1 - ways[points[cust]][points[10 + i]];
+					}
+					else if (cost1 > cost2) {
+						choises[n][cust] = 1;
+						++cust2;
+                        profits[i][j].second += cost2 - ways[points[cust]][points[10 + j]];
+					}
+					else {
+						if (g() % 2) { 
+							choises[n][cust] = 1;
+							++cust2;
+                            profits[i][j].second += cost2 - ways[points[cust]][points[10 + j]];
+						}
+						else {
+							choises[n][cust] = 0;
+							++cust1;
+                            profits[i][j].first += cost1 - ways[points[cust]][points[10 + i]];
+						}
+
+					}
+					cout << choises[n][cust] + 1 << "  ";
+				}
+				cout << cust1 << ':' << cust2 << endl;
+			n += 1;
+			}
+
+            cout << "\nmatrix of wins:\n";
+            for (int j = 0; j < 4; ++j) {
+                cout << "        ";
+                cout.width(2);
+                cout << points[10 + j] + 1 << "    ";
             }
-        }
-    }
-    std::sort(points, points + 10);
-    std::sort(points + 10, points + 14);
-
-    // РІРµРєС‚РѕСЂС‹ СЃРїСЂРѕСЃР° РІСЃРµС… РїРѕРєСѓРїР°С‚РµР»РµР№
-    int customers[10][10] = {};
-
-    for (int i = 0; i < 10; ++i) {
-        for (int j = 0; j < 10; ++j) {
-            customers[i][j] = g() % 5;
-            std::sort(customers[i], customers[i] + 10);
-        }
-    }
-
-    // С†РµРЅС‹ РїРµСЂРІРѕРіРѕ РїСЂРѕРґР°РІС†Р° 10-24
-    int prices1[5] = {};
-    
-    for (int i = 0; i < 5; ++i)
-        prices1[i] = g() % 15 + 10;
-    std::sort(prices1, prices1 + 5);
-
-    // С†РµРЅС‹ РІС‚РѕСЂРѕРіРѕ РїСЂРѕРґР°РІС†Р° 5-29
-    int prices2[5] = {};
-    
-    for (int i = 0; i < 5; ++i)
-        prices2[i] = g() % 2 ? prices1[i] + (g() % 6) : prices1[i] - (g() % 6);
-
-    // РјР°С‚СЂРёС†Р° РІС‹РёРіСЂС‹С€РµР№ РѕР±РѕРёС… РїСЂРѕРґР°РІС†РѕРІ
-    Profit profits[4][4] = {};
-
-    // РїРѕСЃС‚СЂРѕРµРЅРёРµ РјР°С‚СЂРёС†С‹ РІС‹РёРіСЂС‹С€РµР№
-    for (int i = 0; i < 4; ++i) // РїРµСЂРІС‹Р№ РїСЂРѕРґР°РІРµС†
-        for (int j = 0; j < 4; ++j) { // РІС‚РѕСЂРѕР№ РїСЂРѕРґР°РІРµС†
-            for (int cust = 0; cust < 10; ++cust) { // РїРѕРєРѕРїР°С‚РµР»Рё
-                int point = points[cust]; // С‚РѕС‡РєР°, РіРґРµ Р±С‹Р» РїРѕРєСѓРїР°С‚РµР»СЊ РІ РїСЂРµРґС‹РґСѓС‰РёР№ РјРѕРјРµРЅС‚ РІСЂРµРјРµРЅРё
-
-                for (int good = 0; good < 10; ++ good) { // РІРµРєС‚РѕСЂ СЃРїСЂРѕСЃР°
-                    if (ways[point][points[10 + i]] + prices1[customers[cust][good]] < ways[point][points[10 + j]] + prices2[customers[cust][good]]) {
-                        profits[i][j].first += prices1[customers[cust][good]];
-                        point = points[10 + i];
-                    }
-                    else if (ways[point][points[10 + i]] + prices1[customers[cust][good]] > ways[point][points[10 + j]] + prices2[customers[cust][good]]) {
-                        profits[i][j].second += prices2[customers[cust][good]];
-                        point = points[10 + j];
+            cout << endl;
+            for (int i = 0; i < 4; ++i) {
+                cout.width(2);
+                cout << points[10 + i] + 1 << "  ";
+                for (int j = 0; j < 4; ++j) {
+                    cout << "(";
+                    cout.width(4);
+                    cout << profits[i][j].first << ", "; 
+                    cout.width(4);
+                    cout << profits[i][j].second << ")  ";
                 }
-                    else {
-                        int temp = g() % 2; // temp = 0 РёР»Рё 1
-                        profits[i][j].first += temp * prices1[customers[cust][good]];
-                        profits[i][j].second += (1 - temp) * prices2[customers[cust][good]];                   
-                        point = points[10 + temp * i + (1 - temp) * j];
+                cout << endl;
+            }
+    
+            // равновесие по Нешу
+            bool flg = false;
+            for (int i = 0; i < 4; ++i) {
+                int max1 = -1;
+                for (int j = 0; j < 4; ++j)
+                    if (profits[i][j].second > max1)
+                        max1 = profits[i][j].second;
+                for (int j = 0; j < 4; ++j) {
+                    int max2 = -1;
+                    for (int k = 0; k < 4; ++k)
+                        if (profits[k][j].first > max2)
+                            max2 = profits[k][j].first;
+                    if ((profits[i][j].first == max2) && (profits[i][j].second == max1)) {
+                        cout << "\nNash equilibrium in (" << points[10 + i] + 1 << ", " << points[10 + j] + 1 << ')' << endl;
+                        flg = true;
                     }
                 }
             }
-        }
-    
-    cout << endl;
-    for (int i = 0; i < 10; ++i) {
-        cout << "goods of " << i << " customer: ";
-        for (int j = 0; j < 10; ++j) 
-            cout << customers[i][j] << ' ';
-        cout << endl;
-    }
+            if (!flg)
+                cout << "\nno Nash equilibrium in clear strategy\n";
 
-    cout << "\nprices of 1 seller: ";
-    for (int i = 0; i < 5; ++i)
-        cout << i << " - " << prices1[i] << "; ";
-    cout << endl;
-
-    cout << "\nprices of 2 seller: ";
-    for (int i = 0; i < 5; ++i)
-        cout << i << " - " << prices2[i] << "; ";
-    cout << endl << endl;
-
-    cout << "points of customers: ";
-    for (int i = 0; i < 10; ++i)
-        cout << points[i] << " ";
-    cout << endl;
-
-    cout << "\npoints of sellers: ";
-    for (int i = 10; i < 14; ++i)
-        cout << points[i] << " ";
-    cout << endl << endl;
-
-    for (int j = 0; j < 4; ++j) {
-        cout << '\t' << points[10 + j] << '\t';
-    }
-    cout << endl;
-    for (int i = 0; i < 4; ++i) {
-        cout.width(2);
-        cout << points[10 + i] << ' ';
-        for (int j = 0; j < 4; ++j) 
-            cout << "(" << profits[i][j].first << ", " << profits[i][j].second << ")\t";
-        cout << endl;
-    }
-    
-    // СЂР°РІРЅРѕРІРµСЃРёРµ РїРѕ РќРµС€Сѓ
-    bool flg = false;
-    for (int i = 0; i < 4; ++i) {
-        int max1 = -1;
-        for (int j = 0; j < 4; ++j)
-            if (profits[i][j].second > max1)
-                max1 = profits[i][j].second;
-        for (int j = 0; j < 4; ++j) {
-            int max2 = -1;
-            for (int k = 0; k < 4; ++k)
-                if (profits[k][j].first > max2)
-                    max2 = profits[k][j].first;
-            if ((profits[i][j].first == max2) && (profits[i][j].second == max1)) {
-                cout << "\nNash equilibrium in (" << points[10 + i] << ", " << points[10 + j] << ')' << endl;
-                flg = true;
-            }
-        }
-    }
-    if (!flg)
-        cout << "\nno Nash equilibrium in clear strategy\n";
+			cout << "\ngenerate new model?[y/n]: ";
+            ans = cin.get();
+            cin.get();
+		} while (ans == 'y' || ans == 'Y');
 }
+
