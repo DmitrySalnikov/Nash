@@ -16,9 +16,9 @@ int main () {
 	do {
 		cout << "36 places, 10 customers, 5 goods, 2 sellers, 4 marketplaces\n";
 
-		int inf = std::numeric_limits<int>::max(); //inf - бесконечность
+		int inf = std::numeric_limits<int>::max(); //infinity
 
-		// матрица путей{0, inf}
+		// matrix ways{0, inf}
 		int  ways[36][36] = {};
 		for (int i = 0; i < 36; ++i) {
 			for (int j = 0; j < 36; ++j)
@@ -26,7 +26,7 @@ int main () {
 			ways[i][i] = 0;
 		}
 
-		// делаем матрицу путей{0, 1, 2, inf}
+		// do matrix ways{0, 1, 2, inf}
 		ways[0][1] = g() % 2 + 1;
 		ways[0][6] = g() % 2 + 1;
 		for (int i = 1; i < 6; ++i) {
@@ -50,14 +50,14 @@ int main () {
 		for (int i = 1; i < 6; ++i) 
 			ways[6 * i][6 * i - 1] = inf;
 
-		// симметризация матрицы путей
+		// symmetrization matrix ways
 		for (int i = 0; i < 36; ++i) {
 			for (int j = 0; j < i; ++j)
 				ways[j][i] = ways[i][j];
 		}
 
-		// выод матрицы путей
-		cout << "\nmatrix of ways:\n";
+		// output matrix ways
+		cout << "\nmatrix ways:\n";
 		for (int i = 0; i < 36; ++i) {
 			for (int j = 0; j < 36; ++j) {
 				if (ways[i][j] == inf)
@@ -68,14 +68,14 @@ int main () {
 			cout << endl;
 		}
 
-		// алгоритм флойда поиска кратчайших путей 
+		// Floyd's algorithm 
 		for(int k = 0; k < 36; ++k)
 			for(int i = 0; i < 36; ++i)  
 				for(int j = 0; j < 36; ++j)
 					if(i != k && j != k && ways[i][k] != inf && ways[k][j] != inf)
 						ways[i][j] = std::min(ways[i][j], ways[i][k] + ways[k][j]);
 
-		// точки расположения покупателей{0..9} и продавцов{10..13}
+		// points of customers{0..9} and sellers{10..13}
 		int points[14] = {};
 		for (int i = 0; i < 14; ++i) {
 			points[i] = -1;
@@ -94,7 +94,7 @@ int main () {
 		std::sort(points, points + 10);
 		std::sort(points + 10, points + 14);
 
-		// векторы спроса всех покупателей
+		// vectors demands
 		int customers[10][10] = {};
 		for (int i = 0; i < 10; ++i) {
 			for (int j = 0; j < 10; ++j)
@@ -102,18 +102,18 @@ int main () {
 			std::sort(customers[i], customers[i] + 10);
 		}
 
-		// цены первого продавца{10..24}
+		// prices of first seller{10..24}
 		int prices1[5] = {};
 		for (int i = 0; i < 5; ++i)
 			prices1[i] = g() % 15 + 10;
 		std::sort(prices1, prices1 + 5);
 
-		// цены второго продавца{8..26}
+		// prices of second seller{8..26}
 		int prices2[5] = {};
 		for (int i = 0; i < 5; ++i)
 			prices2[i] = g() % 2 ? prices1[i] + (g() % 2) : prices1[i] - (g() % 2);
 
-		// вывод характеристик модели
+		// output characteristics of model
 		for (int i = 0; i < 9; ++i) {
 			cout << "\ngoods of " << i + 1 << " customer:  ";
 			for (int j = 0; j < 10; ++j) 
@@ -124,11 +124,11 @@ int main () {
 			cout << customers[9][j] + 1 << ' ';
 		cout << endl;
 
-		cout << "\nprices of 1 seller: ";
+		cout << "\nprices of first seller: ";
 		for (int i = 0; i < 5; ++i)
 			cout << prices1[i] << ' ';
 
-		cout << "\nprices of 2 seller: ";
+		cout << "\nprices of second seller: ";
 		for (int i = 0; i < 5; ++i) {
 			cout.width(2);
 			cout << prices2[i] << ' ';
@@ -144,29 +144,29 @@ int main () {
 			cout << points[i] + 1 << " ";
 		cout << endl << endl;
 
-		// матрица предпочтений покупателей
-		cout << "matrix of choises:\n      ";
+		// matrix preferences
+		cout << "matrix preferences:\n      ";
 		for (int cust = 0; cust < 10; ++cust) {
 			cout.width(3);
 			cout << points[cust] + 1;
 		}
 		cout << endl;
 		bool choises[16][10] = {};
-        // матрица выигрышей
+        // matrix wins
         pair<int, int> profits[4][4] = {};
 		int n = 0;
-		for (int i = 0; i < 4; ++i) // первый продавец
-			for (int j = 0; j < 4; ++j) { // второй продавец
+		for (int i = 0; i < 4; ++i) // first seller
+			for (int j = 0; j < 4; ++j) { // second seller
 				cout.width(2);
 				cout << points[10 + i] + 1  << ", ";
 				cout.width(2);
 				cout << points[10 + j] + 1 << ": ";
 				int cust1 = 0;
 				int cust2 = 0;
-				for (int cust = 0; cust < 10; ++cust) { // покупатели
-					int cost1 = ways[points[cust]][points[10 + i]]; // затраты на 1 продавца
-					int cost2 = ways[points[cust]][points[10 + j]]; // затраты на 2 продавца
-					for (int good = 0; good < 10; ++good) { // вектор спроса
+				for (int cust = 0; cust < 10; ++cust) { // customers
+					int cost1 = ways[points[cust]][points[10 + i]]; // costs by first seller
+					int cost2 = ways[points[cust]][points[10 + j]]; // costs by second seller
+					for (int good = 0; good < 10; ++good) { // vector demands
 						cost1 += prices1[customers[cust][good]];
 						cost2 += prices2[customers[cust][good]];
 					}
@@ -199,7 +199,7 @@ int main () {
 			n += 1;
 			}
 
-            cout << "\nmatrix of wins:\n";
+            cout << "\nmatrix wins:\n";
             for (int j = 0; j < 4; ++j) {
                 cout << "        ";
                 cout.width(2);
@@ -219,7 +219,7 @@ int main () {
                 cout << endl;
             }
     
-            // равновесие по Нешу
+            // Nash equilibrium
             bool flg = false;
             for (int i = 0; i < 4; ++i) {
                 int max1 = -1;
@@ -238,7 +238,7 @@ int main () {
                 }
             }
             if (!flg)
-                cout << "\nno Nash equilibrium in clear strategy\n";
+                cout << "\nno Nash equilibrium in clear strategies\n";
 
 			cout << "\ngenerate new model?[y/n]: ";
             ans = cin.get();
