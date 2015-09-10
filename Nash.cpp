@@ -9,57 +9,69 @@ using std::cin;
 using std::endl;
 using std::pair;
 
-int main () {
-    std::random_device g;
+std::random_device g;
 
-    char ans;
+int way() {
+  return g() % 2 + 1;
+}
+
+int main () {
+  int const sz = 45;
+
+  char ans;
 	do {
-		cout << "36 places, 10 customers, 5 goods, 2 sellers, 4 marketplaces\n";
+		cout << "9x5 places, 10 customers, 5 goods, 2 sellers, 4 marketplaces\n";
 
 		int inf = std::numeric_limits<int>::max(); //infinity
 
 		// matrix ways{0, inf}
-		int  ways[36][36] = {};
-		for (int i = 0; i < 36; ++i) {
-			for (int j = 0; j < 36; ++j)
+		int ways[sz][sz] = {};
+		for (int i = 0; i < sz; ++i) {
+			for (int j = 0; j < sz; ++j)
 				ways[i][j] = inf;
 			ways[i][i] = 0;
 		}
 
 		// do matrix ways{0, 1, 2, inf}
 		ways[0][1] = g() % 2 + 1;
-		ways[0][6] = g() % 2 + 1;
-		for (int i = 1; i < 6; ++i) {
+		ways[0][5] = g() % 2 + 1;
+		for (int i = 1; i < 4; ++i) {
 			ways[i][i - 1] = g() % 2 + 1;
 			ways[i][i + 1] = g() % 2 + 1;
-			ways[i][i + 6] = g() % 2 + 1;
+			ways[i][i + 5] = g() % 2 + 1;
 		}
-		for (int i = 6; i < 30; ++i) {
+    ways[4][3] = way();
+    ways[4][9] = way();
+		for (int i = 5; i < 40; ++i) {
 			ways[i][i - 1] = g() % 2 + 1;
 			ways[i][i + 1] = g() % 2 + 1;
-			ways[i][i + 6] = g() % 2 + 1;
-			ways[i][i - 6] = g() % 2 + 1;
+			ways[i][i + 5] = g() % 2 + 1;
+			ways[i][i - 5] = g() % 2 + 1;
 		}
-		for (int i = 30; i < 35; ++i) {
+		for (int i = 1; i < 8; ++i) {
+			ways[5 * i][5 * i - 1] = inf;
+			ways[5 * (i + 1) - 1][5 * (i + 1)] = inf;
+    }
+    ways[40][35] = way();
+    ways[40][41] = way();
+		for (int i = 41; i < 44; ++i) {
 			ways[i][i - 1] = g() % 2 + 1;
 			ways[i][i + 1] = g() % 2 + 1;
-			ways[i][i - 6] = g() % 2 + 1;
+			ways[i][i - 5] = g() % 2 + 1;
 		}
-		ways[35][34] = g() % 2 + 1;
-		ways[35][29] = g() % 2 + 1;
-		for (int i = 1; i < 6; ++i) 
-			ways[6 * i][6 * i - 1] = inf;
+		ways[44][43] = g() % 2 + 1;
+		ways[44][39] = g() % 2 + 1;
 
 		// symmetrization matrix ways
-		for (int i = 0; i < 36; ++i) {
+		for (int i = 1; i < sz; ++i) {
 			for (int j = 0; j < i; ++j)
 				ways[j][i] = ways[i][j];
 		}
 
 		// output matrix ways
 		cout << "\nmatrix ways:\n";
-		for (int i = 0; i < 36; ++i) {
-			for (int j = 0; j < 36; ++j) {
+		for (int i = 0; i < sz; ++i) {
+			for (int j = 0; j < sz; ++j) {
 				if (ways[i][j] == inf)
 					cout << "* ";
 				else
@@ -69,9 +81,9 @@ int main () {
 		}
 
 		// Floyd's algorithm 
-		for(int k = 0; k < 36; ++k)
-			for(int i = 0; i < 36; ++i)  
-				for(int j = 0; j < 36; ++j)
+		for(int k = 0; k < sz; ++k)
+			for(int i = 0; i < sz; ++i)  
+				for(int j = 0; j < sz; ++j)
 					if(i != k && j != k && ways[i][k] != inf && ways[k][j] != inf)
 						ways[i][j] = std::min(ways[i][j], ways[i][k] + ways[k][j]);
 
@@ -81,7 +93,7 @@ int main () {
 			points[i] = -1;
 			while (true) {
 				bool flag = false;
-				int temp = g() % 36;
+				int temp = g() % sz;
 				for (int j = 0; j < i; ++j)
 					if (temp == points[j])
 						flag = true;
